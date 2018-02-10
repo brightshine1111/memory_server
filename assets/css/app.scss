@@ -1,0 +1,14 @@
+/* This file is for your main application css. */
+
+@import "bootstrap";
+
+.tile {
+  padding: 0;
+  width: 4em;
+  height: 4em;
+}
+
+.tile p {
+  margin: auto;
+  font-size: 3em;
+}
