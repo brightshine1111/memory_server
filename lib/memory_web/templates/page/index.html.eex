@@ -3,6 +3,16 @@
 <div class="row">
   <div class="col">
     <h1 id="index-page">Join a Game</h1>
-    <p><a href="/game/demo">Join</a></p>
+    <p>
+      <input type='text' id='userInput' placeholder='Enter Game Name' />
+      <input type='button' onclick='joinGame()' value='Go!' />
+    </p>
   </div>
 </div>
+
+<script type="text/javascript">
+  function joinGame(){
+    var userInput = document.getElementById('userInput').value;
+    window.location.assign(window.location.href + "game/" + userInput);
+  }
+</script>
