@@ -2,96 +2,39 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Button } from 'reactstrap';
 
-export default function run_game(root) {
-  ReactDOM.render(<MemoryGame />, root);
+export default function game_init(root, channel) {
+  ReactDOM.render(<MemoryGame channel={channel} />, root);
 }
 
 class MemoryGame extends React.Component {
   constructor(props) {
     super(props);
-    
-    // fill in initial state
+    this.channel = props.channel;
     this.state = {
       score: 0,
       lastGuess: -1,
-      tiles: getNewTiles(),
-    };
-  }
-  
-  isGameComplete() {
-    
-  }
-  
-  // Game Functions
-  tileOnClick(tid) {
-    let newTiles = this.state.tiles.slice();
-    let newScore = this.state.score + 1;
-    let lastGuess = this.state.lastGuess;
-    let newLastGuess = -1;  // reset by default
-    
-    console.log("OnClick called. Last guess: " + lastGuess);
-    
-    if(lastGuess == -1) {
-      // first move
-      newTiles[tid].status = "selected";
-      newLastGuess = tid;
-      console.log("Selected " + tid);
-      
-      this.setState({
-        score: newScore,
-        lastGuess: newLastGuess,
-        tiles: newTiles,
-        hold: false,
-      });
-      
-    } else if (this.state.tiles[tid].letter == this.state.tiles[lastGuess].letter) {
-      // match found
-      newTiles[tid].status = "matched";
-      newTiles[lastGuess].status = "matched";
-      console.log("Found match");
-      
-      this.setState({
-        score: newScore,
-        lastGuess: newLastGuess,
-        tiles: newTiles,
-      });
-      
-    } else {
-      console.log("Match not found");
-      newTiles[tid].status = "selected";
-      // change state then pause
-      this.setState({
-        score: newScore,
-        tiles: newTiles,
-        hold: true,
-      });
-      
-      this.render();
-      
-      // reset display of tiles on next render
-      setTimeout(() => {
-        newTiles.forEach(function(tile) {
-          if (tile.status == "selected")
-            tile.status = "unmatched";
-        });
-        
-        newLastGuess = -1;
-        console.log("Re-rendering...");
-        this.setState({
-          lastGuess: newLastGuess,
-          tiles: newTiles,
-          hold: false,
-        });
-      }, 1500); 
+      tiles: getDummyTiles(),
+      hold: false,
     }
+
+    this.channel.join()
+        .receive("ok", this.gotView.bind(this))
+        .receive("error", resp => { console.log("Unable to join", resp) });
   }
-  
+
+  gotView(view) {
+    console.log("New view", view);
+    this.setState(view.game);
+  }
+
+  tileOnClick(tid) {
+    this.props.channel.push("guess", {tile: tid})
+      .receive("ok", this.gotView.bind(this));
+  }
+
   resetBoard() {
-    this.setState({
-      score: 0,
-      lastGuess: -1,
-      tiles: getNewTiles(),
-    });
+    this.props.channel.push("reset", {})
+      .receive("ok", this.gotView.bind(this));
   }
   
   renderTile(i) {
@@ -168,8 +111,8 @@ function Tile(params) {
   }
 }
 
-function getNewTiles() {
-  var letters = _.shuffle('AABBCCDDEEFFGGHH');
+function getDummyTiles() {
+  var letters = ('XXXXXXXXXXXXXXXX').split("")
   var tiles = _.map(letters, function(letter) { return {letter: letter, status: "unmatched"}; });
   return tiles;
 }

@@ -13,20 +13,26 @@
 // to also remove its path from "config.paths.watched".
 import "phoenix_html";
 
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 // Import local files
 //
 // Local files can be imported directly using relative
 // paths "./socket" or full ones "web/static/js/socket".
 
-// import socket from "./socket"
+import socket from "./socket"
 
-import run_game from "./memory";
+import game_init from "./memory";
 
-function init() {
-  let root = document.getElementById('game');
-  run_game(root);
+function start() {
+  let root = document.getElementById('root');
+  if (root) {
+    let channel = socket.channel("games:" + window.gameName, {});
+    game_init(root, channel);
+  }
 }
 
 // Use jQuery to delay until page loaded.
-$(init);
+$(start);
 
