@@ -25,6 +25,14 @@ class MemoryGame extends React.Component {
   gotView(view) {
     console.log("New view", view);
     this.setState(view.game);
+    
+    if (view.game.hold) { // delay after incorrect guess
+      this.render();
+      setTimeout(() => {
+        this.props.channel.push("clear", {})
+          .receive("ok", this.gotView.bind(this));
+      }, 1500);
+    }
   }
 
   tileOnClick(tid) {
@@ -38,7 +46,7 @@ class MemoryGame extends React.Component {
   }
   
   renderTile(i) {
-    if (this.state.hold) {
+    if (this.state.hold || this.state.tiles[i].status != "unmatched") {
       return (
         <Tile tid={i} letter={this.state.tiles[i].letter} status={this.state.tiles[i].status} />
       );
